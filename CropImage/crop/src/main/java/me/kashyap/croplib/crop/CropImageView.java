@@ -27,6 +27,11 @@ public class CropImageView extends ImageView {
     private RectF bottomRect = new RectF();
     private Paint borderPaint = new Paint();
     private RectF actualImageRect;
+    private Rect cropRect = new Rect();
+
+    private float lastTouchX;
+    private float lastTouchY;
+    private int anchorPoint;
 
     public CropImageView(Context context) {
         this(context, null);
@@ -54,11 +59,11 @@ public class CropImageView extends ImageView {
     /**
      * This method converts dp unit to equivalent pixels, depending on device density.
      *
-     * @param dp A value in dp (density independent pixels) unit. Which we need to convert into pixels
+     * @param dp      A value in dp (density independent pixels) unit. Which we need to convert into pixels
      * @param context Context to get resources and device specific display metrics
      * @return A float value to represent px equivalent to dp depending on device density
      */
-    public static float convertDpToPixel(float dp, Context context){
+    public static float convertDpToPixel(float dp, Context context) {
         Resources resources = context.getResources();
         DisplayMetrics metrics = resources.getDisplayMetrics();
         return dp * (metrics.densityDpi / 160f);
@@ -76,6 +81,12 @@ public class CropImageView extends ImageView {
         leftRect.set(0, 0, 0, h);
         rightRect.set(w, 0, w, h);
         bottomRect.set(0, h, w, h);
+        setCropRect();
+    }
+
+    private void setCropRect() {
+        cropRect.set((int) leftRect.right, (int) topRect.bottom, (int) rightRect.left, (int) bottomRect.top);
+        cropDrawable.setBounds(cropRect);
     }
 
     private void setActualImageRect() {
@@ -88,7 +99,7 @@ public class CropImageView extends ImageView {
     @Override
     protected void onDraw(Canvas canvas) {
         super.onDraw(canvas);
-        if(cropDrawable != null) {
+        if (cropDrawable != null) {
             cropDrawable.draw(canvas);
         }
         canvas.drawRect(leftRect, borderPaint);
@@ -99,6 +110,58 @@ public class CropImageView extends ImageView {
 
     @Override
     public boolean onTouchEvent(MotionEvent event) {
+        switch (event.getAction()) {
+            case MotionEvent.ACTION_DOWN:
+                lastTouchX = event.getX();
+                lastTouchY = event.getY();
+                calculateAnchorPoint();
+                break;
+
+            case MotionEvent.ACTION_MOVE:
+                float dx = event.getX() - lastTouchX;
+                float dy = event.getY() - lastTouchY;
+                onActionMove(dx, dy);
+                break;
+
+
+        }
         return super.onTouchEvent(event);
+    }
+
+    private void onActionMove(float dx, float dy) {
+        switch (anchorPoint) {
+            case AnchorPoint.NONE:
+                break;
+            case AnchorPoint.LEFT:
+                break;
+            case AnchorPoint.TOP:
+                break;
+            case AnchorPoint.BOTTOM:
+                break;
+            case AnchorPoint.RIGHT:
+                break;
+            case AnchorPoint.TOP | AnchorPoint.LEFT:
+                break;
+            case AnchorPoint.TOP | AnchorPoint.RIGHT:
+                break;
+            case AnchorPoint.BOTTOM | AnchorPoint.LEFT:
+                break;
+            case AnchorPoint.BOTTOM | AnchorPoint.RIGHT:
+                break;
+
+        }
+    }
+
+    private void calculateAnchorPoint() {
+        anchorPoint = AnchorPoint.NONE;
+        if (Math.abs(cropRect.left - lastTouchX) < optimumTouchSize)
+            anchorPoint = anchorPoint | AnchorPoint.LEFT;
+        else if (Math.abs(cropRect.right - lastTouchX) < optimumTouchSize)
+            anchorPoint = anchorPoint | AnchorPoint.RIGHT;
+        else if (Math.abs(cropRect.top - lastTouchY) < optimumTouchSize)
+            anchorPoint = anchorPoint | AnchorPoint.TOP;
+        else if (Math.abs(cropRect.bottom - lastTouchY) < optimumTouchSize)
+            anchorPoint = anchorPoint | AnchorPoint.BOTTOM;
+
     }
 }
