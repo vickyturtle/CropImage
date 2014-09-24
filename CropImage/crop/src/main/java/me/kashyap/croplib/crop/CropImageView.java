@@ -2,13 +2,16 @@ package me.kashyap.croplib.crop;
 
 import android.content.Context;
 import android.content.res.Resources;
+import android.graphics.Bitmap;
 import android.graphics.Canvas;
 import android.graphics.Paint;
 import android.graphics.Rect;
 import android.graphics.RectF;
 import android.graphics.drawable.Drawable;
+import android.net.Uri;
 import android.util.AttributeSet;
 import android.util.DisplayMetrics;
+import android.util.Log;
 import android.view.MotionEvent;
 import android.widget.ImageView;
 
@@ -44,12 +47,13 @@ public class CropImageView extends ImageView {
     public CropImageView(Context context, AttributeSet attrs, int defStyleAttr) {
         super(context, attrs, defStyleAttr);
         optimumTouchSize = convertDpToPixel(48, getContext());
-        borderPaint.setColor(0xff999999);
+        borderPaint.setColor(0x99999999);
         borderPaint.setStyle(Paint.Style.FILL);
     }
 
     public void setCropDrawable(Drawable cropDrawable) {
         this.cropDrawable = cropDrawable;
+        setActualImageRect();
     }
 
     public void setCropDrawable(int cropDrawableId) {
@@ -67,6 +71,13 @@ public class CropImageView extends ImageView {
         Resources resources = context.getResources();
         DisplayMetrics metrics = resources.getDisplayMetrics();
         return dp * (metrics.densityDpi / 160f);
+    }
+
+    @Override
+    protected void onMeasure(int widthMeasureSpec, int heightMeasureSpec) {
+        super.onMeasure(widthMeasureSpec, heightMeasureSpec);
+        Log.d("cropImageView", "image drawable null :" + (getDrawable() == null));
+        setActualImageRect();
     }
 
     @Override
@@ -89,11 +100,40 @@ public class CropImageView extends ImageView {
         cropDrawable.setBounds(cropRect);
     }
 
+    private void updateBorderRects() {
+        leftRect.right = cropRect.left;
+        topRect.bottom = cropRect.top;
+        rightRect.left = cropRect.right;
+        bottomRect.top = cropRect.bottom;
+
+        topRect.left = bottomRect.left = cropRect.left;
+        topRect.right = bottomRect.right = cropRect.right;
+        cropDrawable.setBounds(cropRect);
+    }
+
     private void setActualImageRect() {
         Rect drawableBound = new Rect();
         getDrawable().copyBounds(drawableBound);
         actualImageRect = new RectF(drawableBound);
         getImageMatrix().mapRect(actualImageRect);
+    }
+
+    @Override
+    public void setImageBitmap(Bitmap bm) {
+        super.setImageBitmap(bm);
+        setActualImageRect();
+    }
+
+    @Override
+    public void setImageDrawable(Drawable drawable) {
+        super.setImageDrawable(drawable);
+        setActualImageRect();
+    }
+
+    @Override
+    public void setImageURI(Uri uri) {
+        super.setImageURI(uri);
+        setActualImageRect();
     }
 
     @Override
@@ -115,11 +155,13 @@ public class CropImageView extends ImageView {
                 lastTouchX = event.getX();
                 lastTouchY = event.getY();
                 calculateAnchorPoint();
-                break;
+                return true;
 
             case MotionEvent.ACTION_MOVE:
                 float dx = event.getX() - lastTouchX;
                 float dy = event.getY() - lastTouchY;
+                lastTouchX = event.getX();
+                lastTouchY = event.getY();
                 onActionMove(dx, dy);
                 break;
 
@@ -131,6 +173,19 @@ public class CropImageView extends ImageView {
     private void onActionMove(float dx, float dy) {
         switch (anchorPoint) {
             case AnchorPoint.NONE:
+//                if(dx + cropRect.left > leftRect.left) {
+                    cropRect.left += dx;
+//                } else if (dx + cropRect.right < rightRect.right) {
+                    cropRect.right += dx;
+//                }
+
+//                if(dy + cropRect.top > topRect.top) {
+                    cropRect.top += dy;
+//                } else if(dy + cropRect.bottom < bottomRect.bottom){
+                    cropRect.bottom += dy;
+//                }
+                updateBorderRects();
+                invalidate();
                 break;
             case AnchorPoint.LEFT:
                 break;
@@ -147,6 +202,7 @@ public class CropImageView extends ImageView {
             case AnchorPoint.BOTTOM | AnchorPoint.LEFT:
                 break;
             case AnchorPoint.BOTTOM | AnchorPoint.RIGHT:
+
                 break;
 
         }

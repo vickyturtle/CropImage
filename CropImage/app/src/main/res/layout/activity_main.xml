@@ -11,6 +11,16 @@
     <TextView
         android:text="@string/hello_world"
         android:layout_width="wrap_content"
-        android:layout_height="wrap_content" />
+        android:layout_height="wrap_content"
+        android:id="@+id/textView"/>
+
+    <view
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        class="me.kashyap.croplib.crop.CropImageView"
+        android:id="@+id/crop_image"
+        android:src="@drawable/lenna"
+        android:layout_below="@+id/textView"
+        android:layout_marginTop="72dp"/>
 
 </RelativeLayout>
