@@ -183,12 +183,10 @@ public class CropImageView extends ImageView {
                     cropRect.left += dx;
                     cropRect.right += dx;
                 }
-
                 if(dy + cropRect.top > topRect.top && dy + cropRect.bottom < bottomRect.bottom) {
                     cropRect.top += dy;
                     cropRect.bottom += dy;
                 }
-
                 break;
             case AnchorPoint.LEFT:
                 updateLeft(dx);
@@ -203,12 +201,20 @@ public class CropImageView extends ImageView {
                 updateRight(dx);
                 break;
             case AnchorPoint.TOP | AnchorPoint.LEFT:
+                updateTop(dy);
+                updateLeft(dx);
                 break;
             case AnchorPoint.TOP | AnchorPoint.RIGHT:
+                updateTop(dy);
+                updateRight(dx);
                 break;
             case AnchorPoint.BOTTOM | AnchorPoint.LEFT:
+                updateBottom(dy);
+                updateLeft(dx);
                 break;
             case AnchorPoint.BOTTOM | AnchorPoint.RIGHT:
+                updateBottom(dy);
+                updateRight(dx);
                 break;
         }
         updateBorderRects();
@@ -219,11 +225,17 @@ public class CropImageView extends ImageView {
         if(dx + cropRect.left > leftRect.left) {
             cropRect.left += dx;
         }
+        if(null != aspectRatio && !aspectRatio.isFreeCropping()) {
+            cropRect.top += (dx * aspectRatio.heightMultiplier);
+        }
     }
 
     private void updateTop(float dy) {
         if(dy + cropRect.top > topRect.top) {
             cropRect.top += dy;
+        }
+        if(null != aspectRatio && !aspectRatio.isFreeCropping()) {
+            cropRect.left += (dy * aspectRatio.widthMultiplier);
         }
     }
 
@@ -231,11 +243,17 @@ public class CropImageView extends ImageView {
         if(dy + cropRect.bottom < bottomRect.bottom) {
             cropRect.bottom += dy;
         }
+        if(null != aspectRatio && !aspectRatio.isFreeCropping()) {
+            cropRect.right += (dy * aspectRatio.widthMultiplier);
+        }
     }
 
     private void updateRight(float dx) {
         if(dx + cropRect.right < rightRect.right ) {
             cropRect.right += dx;
+        }
+        if(null != aspectRatio && !aspectRatio.isFreeCropping()) {
+            cropRect.bottom += (dx * aspectRatio.heightMultiplier);
         }
     }
 
@@ -245,10 +263,10 @@ public class CropImageView extends ImageView {
             anchorPoint = anchorPoint | AnchorPoint.LEFT;
         else if (Math.abs(cropRect.right - lastTouchX) < optimumTouchSize)
             anchorPoint = anchorPoint | AnchorPoint.RIGHT;
-        else if (Math.abs(cropRect.top - lastTouchY) < optimumTouchSize)
+        if (Math.abs(cropRect.top - lastTouchY) < optimumTouchSize)
             anchorPoint = anchorPoint | AnchorPoint.TOP;
         else if (Math.abs(cropRect.bottom - lastTouchY) < optimumTouchSize)
             anchorPoint = anchorPoint | AnchorPoint.BOTTOM;
-
+        Log.d("CropImageView","Anchor Point : " + anchorPoint);
     }
 }

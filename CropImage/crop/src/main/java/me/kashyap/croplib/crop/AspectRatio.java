@@ -39,4 +39,8 @@ public class AspectRatio {
     public int getWidthRatio() {
         return widthRatio;
     }
+
+    public boolean isFreeCropping() {
+        return widthRatio < 0 || heightRatio < 0;
+    }
 }
