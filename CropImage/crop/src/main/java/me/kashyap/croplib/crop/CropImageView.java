@@ -20,15 +20,18 @@ import android.widget.ImageView;
  */
 public class CropImageView extends ImageView {
 
+    /**
+     * If null then its a free flow cropping.
+     */
     private AspectRatio aspectRatio;
     private Drawable cropDrawable;
     private float optimumTouchSize;
 
-    private RectF topRect = new RectF();
-    private RectF leftRect = new RectF();
-    private RectF rightRect = new RectF();
-    private RectF bottomRect = new RectF();
-    private Paint borderPaint = new Paint();
+    private final RectF topRect = new RectF();
+    private final RectF leftRect = new RectF();
+    private final RectF rightRect = new RectF();
+    private final RectF bottomRect = new RectF();
+    private final Paint borderPaint = new Paint();
     private RectF actualImageRect;
     private Rect cropRect = new Rect();
 
@@ -49,6 +52,7 @@ public class CropImageView extends ImageView {
         optimumTouchSize = convertDpToPixel(48, getContext());
         borderPaint.setColor(0x99999999);
         borderPaint.setStyle(Paint.Style.FILL);
+
     }
 
     public void setCropDrawable(Drawable cropDrawable) {
@@ -83,16 +87,11 @@ public class CropImageView extends ImageView {
     @Override
     protected void onSizeChanged(int w, int h, int oldw, int oldh) {
         super.onSizeChanged(w, h, oldw, oldh);
-        setActualImageRect();
-        setBorderRects(w, h);
-    }
-
-    private void setBorderRects(int w, int h) {
-        topRect.set(0, 0, w, 0);
         leftRect.set(0, 0, 0, h);
         rightRect.set(w, 0, w, h);
+        topRect.set(0, 0, w, 0);
         bottomRect.set(0, h, w, h);
-        setCropRect();
+        setActualImageRect();
     }
 
     private void setCropRect() {
@@ -112,10 +111,17 @@ public class CropImageView extends ImageView {
     }
 
     private void setActualImageRect() {
-        Rect drawableBound = new Rect();
-        getDrawable().copyBounds(drawableBound);
-        actualImageRect = new RectF(drawableBound);
-        getImageMatrix().mapRect(actualImageRect);
+        if(null != leftRect) {
+            Rect drawableBound = new Rect();
+            getDrawable().copyBounds(drawableBound);
+            actualImageRect = new RectF(drawableBound);
+            getImageMatrix().mapRect(actualImageRect);
+            cropRect = new Rect();
+            actualImageRect.round(cropRect);
+            Log.d("Crop", "Crop Rect :" + cropRect);
+            updateBorderRects();
+            invalidate();
+        }
     }
 
     @Override
@@ -173,27 +179,28 @@ public class CropImageView extends ImageView {
     private void onActionMove(float dx, float dy) {
         switch (anchorPoint) {
             case AnchorPoint.NONE:
-//                if(dx + cropRect.left > leftRect.left) {
+                if(dx + cropRect.left > leftRect.left && dx + cropRect.right < rightRect.right ) {
                     cropRect.left += dx;
-//                } else if (dx + cropRect.right < rightRect.right) {
                     cropRect.right += dx;
-//                }
+                }
 
-//                if(dy + cropRect.top > topRect.top) {
+                if(dy + cropRect.top > topRect.top && dy + cropRect.bottom < bottomRect.bottom) {
                     cropRect.top += dy;
-//                } else if(dy + cropRect.bottom < bottomRect.bottom){
                     cropRect.bottom += dy;
-//                }
-                updateBorderRects();
-                invalidate();
+                }
+
                 break;
             case AnchorPoint.LEFT:
+                updateLeft(dx);
                 break;
             case AnchorPoint.TOP:
+                updateTop(dy);
                 break;
             case AnchorPoint.BOTTOM:
+                updateBottom(dy);
                 break;
             case AnchorPoint.RIGHT:
+                updateRight(dx);
                 break;
             case AnchorPoint.TOP | AnchorPoint.LEFT:
                 break;
@@ -202,9 +209,33 @@ public class CropImageView extends ImageView {
             case AnchorPoint.BOTTOM | AnchorPoint.LEFT:
                 break;
             case AnchorPoint.BOTTOM | AnchorPoint.RIGHT:
-
                 break;
+        }
+        updateBorderRects();
+        invalidate();
+    }
 
+    private void updateLeft(float dx) {
+        if(dx + cropRect.left > leftRect.left) {
+            cropRect.left += dx;
+        }
+    }
+
+    private void updateTop(float dy) {
+        if(dy + cropRect.top > topRect.top) {
+            cropRect.top += dy;
+        }
+    }
+
+    private void updateBottom(float dy) {
+        if(dy + cropRect.bottom < bottomRect.bottom) {
+            cropRect.bottom += dy;
+        }
+    }
+
+    private void updateRight(float dx) {
+        if(dx + cropRect.right < rightRect.right ) {
+            cropRect.right += dx;
         }
     }
 
