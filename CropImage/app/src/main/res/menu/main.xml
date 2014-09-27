@@ -1,8 +1,16 @@
 <menu xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:tools="http://schemas.android.com/tools"
-    tools:context=".MainActivity" >
-    <item android:id="@+id/action_settings"
-        android:title="@string/action_settings"
-        android:orderInCategory="100"
-        android:showAsAction="never" />
+      xmlns:tools="http://schemas.android.com/tools"
+      tools:context=".MainActivity">
+    <item
+        android:id="@+id/action_new_pic"
+        android:title="@string/action_new_photo"
+        android:orderInCategory="1"
+        android:icon="@drawable/ic_action_picture"
+        android:showAsAction="always"/>
+    <item
+        android:id="@+id/action_camera"
+        android:title="@string/action_new_photo"
+        android:orderInCategory="1"
+        android:icon="@drawable/ic_action_camera"
+        android:showAsAction="always"/>
 </menu>

@@ -87,10 +87,6 @@ public class CropImageView extends ImageView {
     @Override
     protected void onSizeChanged(int w, int h, int oldw, int oldh) {
         super.onSizeChanged(w, h, oldw, oldh);
-        leftRect.set(0, 0, 0, h);
-        rightRect.set(w, 0, w, h);
-        topRect.set(0, 0, w, 0);
-        bottomRect.set(0, h, w, h);
         setActualImageRect();
     }
 
@@ -111,7 +107,7 @@ public class CropImageView extends ImageView {
     }
 
     private void setActualImageRect() {
-        if(null != leftRect) {
+        if(null != leftRect && !isInEditMode()) {
             Rect drawableBound = new Rect();
             getDrawable().copyBounds(drawableBound);
             actualImageRect = new RectF(drawableBound);
@@ -119,9 +115,26 @@ public class CropImageView extends ImageView {
             cropRect = new Rect();
             actualImageRect.round(cropRect);
             Log.d("Crop", "Crop Rect :" + cropRect);
+            initializeRects();
             updateBorderRects();
             invalidate();
         }
+    }
+
+    private void initializeRects() {
+        leftRect.left = topRect.left = leftRect.right = bottomRect.left = cropRect.left;
+        rightRect.left = rightRect.right = topRect.right = bottomRect.right = cropRect.right;
+        topRect.top = topRect.bottom = leftRect.top = rightRect.top = cropRect.top;
+        bottomRect.top = bottomRect.bottom = leftRect.bottom = rightRect.bottom = cropRect.bottom;
+    }
+
+
+    public void setAspectRatio(AspectRatio aspectRatio) {
+        this.aspectRatio = aspectRatio;
+    }
+
+    public AspectRatio getAspectRatio() {
+        return aspectRatio;
     }
 
     @Override
