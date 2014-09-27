@@ -202,74 +202,94 @@ public class CropImageView extends ImageView {
                 }
                 break;
             case AnchorPoint.LEFT:
-                updateLeft(dx);
+                onDragLeft(dx);
                 break;
             case AnchorPoint.TOP:
-                updateTop(dy);
+                onDragTop(dy);
                 break;
             case AnchorPoint.BOTTOM:
-                updateBottom(dy);
+                onDragBottom(dy);
                 break;
             case AnchorPoint.RIGHT:
-                updateRight(dx);
+                onDragRight(dx);
                 break;
             case AnchorPoint.TOP | AnchorPoint.LEFT:
-                updateTop(dy);
                 updateLeft(dx);
+                updateTop(isAspectCrop() ? dx * aspectRatio.heightMultiplier : dy);
                 break;
             case AnchorPoint.TOP | AnchorPoint.RIGHT:
                 updateTop(dy);
-                updateRight(dx);
+                updateRight(isAspectCrop() ? -dy * aspectRatio.widthMultiplier : dx);
+
                 break;
             case AnchorPoint.BOTTOM | AnchorPoint.LEFT:
                 updateBottom(dy);
-                updateLeft(dx);
+                updateLeft(isAspectCrop() ? -dy * aspectRatio.widthMultiplier : dx);
                 break;
             case AnchorPoint.BOTTOM | AnchorPoint.RIGHT:
-                updateBottom(dy);
                 updateRight(dx);
+                updateBottom(isAspectCrop() ? dx * aspectRatio.heightMultiplier : dy);
                 break;
         }
         updateBorderRects();
         invalidate();
     }
 
+    private void onDragLeft(float dx) {
+        updateLeft(dx);
+        if (isAspectCrop()) {
+            updateTop(dx * aspectRatio.heightMultiplier);
+        }
+    }
+
     private void updateLeft(float dx) {
-        if(dx + cropRect.left > leftRect.left) {
+        if (dx + cropRect.left > leftRect.left) {
             cropRect.left += dx;
         }
-        if(null != aspectRatio && !aspectRatio.isFreeCropping()) {
-            cropRect.top += (dx * aspectRatio.heightMultiplier);
+    }
+
+    private void onDragTop(float dy) {
+        updateTop(dy);
+        if (isAspectCrop()) {
+            updateLeft(dy * aspectRatio.widthMultiplier);
         }
     }
 
     private void updateTop(float dy) {
-        if(dy + cropRect.top > topRect.top) {
+        if (dy + cropRect.top > topRect.top) {
             cropRect.top += dy;
         }
-        if(null != aspectRatio && !aspectRatio.isFreeCropping()) {
-            cropRect.left += (dy * aspectRatio.widthMultiplier);
+    }
+
+    private void onDragBottom(float dy) {
+        updateBottom(dy);
+        if (isAspectCrop()) {
+            updateRight(dy * aspectRatio.widthMultiplier);
         }
     }
 
     private void updateBottom(float dy) {
-        if(dy + cropRect.bottom < bottomRect.bottom) {
+        if (dy + cropRect.bottom < bottomRect.bottom) {
             cropRect.bottom += dy;
         }
-        if(null != aspectRatio && !aspectRatio.isFreeCropping()) {
-            cropRect.right += (dy * aspectRatio.widthMultiplier);
+    }
+
+    private void onDragRight(float dx) {
+        updateRight(dx);
+        if (isAspectCrop()) {
+            updateBottom(dx * aspectRatio.heightMultiplier);
         }
     }
 
     private void updateRight(float dx) {
-        if(dx + cropRect.right < rightRect.right ) {
+        if (dx + cropRect.right < rightRect.right) {
             cropRect.right += dx;
-        }
-        if(null != aspectRatio && !aspectRatio.isFreeCropping()) {
-            cropRect.bottom += (dx * aspectRatio.heightMultiplier);
         }
     }
 
+    private boolean isAspectCrop() {
+        return null != aspectRatio && !aspectRatio.isFreeCropping();
+    }
     private void calculateAnchorPoint() {
         anchorPoint = AnchorPoint.NONE;
         if (Math.abs(cropRect.left - lastTouchX) < optimumTouchSize)
